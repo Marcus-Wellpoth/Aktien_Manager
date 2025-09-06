@@ -9,11 +9,9 @@ dependencies:
   
   - yfinance
  
-  - sqlalchemy # Für eine etwas höhere Abstraktion bei der DB-Interaktion, optional aber nützlich
-  - openpyxl # Nützlich, falls CSVs auch mal in Excel geöffnet/gespeichert werden
+  - sqlalchemy
+  - openpyxl 
   - pip
   - pip:
      - matplotlib
      - pyqt6 
-    # Hier könnten spezifische Pakete, die nicht direkt auf conda-forge sind, per pip installiert werden.
-    # Für dieses Projekt sollte alles über conda-forge verfügbar sein.

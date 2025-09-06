@@ -1,13 +1,16 @@
-import yfinance as yf
-import pandas as pd
+from datetime import date
 import sqlite3
-from datetime import datetime
+
+import pandas as pd
+import yfinance as yf
+
 
 class StockDataManager:
+
     def __init__(self, db_name="stock_data.db"):
-        self.db_name = db_name
-        self.conn = None
-        self.cursor = None
+        self.db_name: str = db_name
+        self.conn: sqlite3.Connection | None = None
+        self.cursor: sqlite3.Cursor | None = None
         self._connect_db()
         self._create_tables()
 
@@ -152,50 +155,5 @@ class StockDataManager:
             self.conn.close()
             print("Datenbankverbindung geschlossen.")
 
-# Beispielnutzung (kann später entfernt werden, wenn GUI fertig ist)
-if __name__ == "__main__":
-    manager = StockDataManager("my_stocks.db")
-
-    # Symbole aus CSV hinzufügen (Beispiel)
-    # Angenommen, du hast eine stocks.csv mit 'Symbol,CompanyName'
-    # Beispiel-CSV-Inhalt:
-    # Symbol,CompanyName
-    # AAPL,Apple Inc.
-    # MSFT,Microsoft Corp.
-    # GOOGL,Alphabet Inc. (GOOGL)
-    # AMZN,Amazon.com Inc.
-    
-    csv_file = "stocks.csv" # Erstelle diese Datei manuell für den Test
-
-    try:
-        df_symbols = pd.read_csv(csv_file)
-        for index, row in df_symbols.iterrows():
-            manager.add_stock(row['Symbol'], row.get('CompanyName', ''))
-    except FileNotFoundError:
-        print(f"'{csv_file}' nicht gefunden. Bitte erstellen Sie eine CSV-Datei mit 'Symbol,CompanyName'.")
-    except KeyError:
-        print(f"Fehler: '{csv_file}' muss Spalten 'Symbol' und optional 'CompanyName' enthalten.")
 
 
-    symbols_to_fetch = manager.get_all_symbols()
-    if not symbols_to_fetch:
-        # Fallback: Wenn CSV leer ist oder nicht existiert, einige bekannte Symbole holen
-        symbols_to_fetch = ["AAPL", "MSFT", "GOOGL"]
-        for s in symbols_to_fetch:
-            manager.add_stock(s)
-
-    for symbol in symbols_to_fetch:
-        manager.fetch_and_store_data(symbol, period="1y") # Holt Daten für 1 Jahr
-
-    # Testen des Datenabrufs
-    aapl_data = manager.get_stock_data("AAPL")
-    if not aapl_data.empty:
-        print("\nAAPL Daten (erste 5 Reihen):")
-        print(aapl_data.head())
-    
-    msft_data = manager.get_stock_data("MSFT", start_date="2024-01-01")
-    if not msft_data.empty:
-        print("\nMSFT Daten seit 2024-01-01 (letzte 5 Reihen):")
-        print(msft_data.tail())
-
-    manager.close()

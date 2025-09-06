@@ -3,7 +3,7 @@ import numpy as np
 
 class FinancialTools:
     @staticmethod
-    def calculate_returns(prices_series, in_percent=True): # <-- NEUER PARAMETER HIER!
+    def calculate_returns(prices_series, in_percent=True): 
         """Berechnet die täglichen Renditen."""
         if prices_series.empty:
             return pd.Series(dtype='float64')
@@ -25,7 +25,6 @@ class FinancialTools:
         """Berechnet die kumulativen Renditen."""
         if prices_series.empty:
             return pd.Series(dtype='float64')
-        # HIER: Rufe calculate_returns mit in_percent=False auf, um Dezimalwerte zu bekommen
         daily_returns_raw = FinancialTools.calculate_returns(prices_series, in_percent=False)
         if daily_returns_raw.empty:
             return pd.Series(dtype='float64')
@@ -108,24 +107,3 @@ class FinancialTools:
         beta = rolling_covariance / rolling_variance
         return beta.dropna()
 
-# Beispielnutzung (für Tests) - Muss an die neuen Funktionssignaturen angepasst werden
-if __name__ == "__main__":
-    # Erzeuge fiktive Daten für Tests
-    dates = pd.to_datetime(pd.date_range(start='2023-01-01', periods=100))
-    stock_prices_series = pd.Series(np.random.rand(100) * 100 + 50, index=dates) # direkt als Series
-    market_prices_series = pd.Series(np.random.rand(100) * 10 + 200, index=dates) # direkt als Series
-
-    print("Tägliche Renditen (in Prozent):")
-    print(FinancialTools.calculate_returns(stock_prices_series, in_percent=True).head()) # Für Anzeige
-
-    print("\nKumulative Renditen (Dezimal):")
-    print(FinancialTools.calculate_cumulative_returns(stock_prices_series).head())
-
-    print("\nGleitender 20-Tage-Durchschnitt:")
-    print(FinancialTools.calculate_moving_average(stock_prices_series, window=20).head())
-
-    print("\nRollierende 20-Tage-Volatilität (annualisiert, Dezimal):")
-    print(FinancialTools.calculate_volatility(stock_prices_series, window=20).head())
-
-    print("\nRollierendes 60-Tage-Beta (Aktie vs. Markt, Dezimal):")
-    print(FinancialTools.calculate_beta(stock_prices_series, market_prices_series, window=60).head())

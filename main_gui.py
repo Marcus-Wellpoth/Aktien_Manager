@@ -1,19 +1,22 @@
+import datetime
 import sys
+
+from PyQt6.QtCore import QDate
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QTabWidget, QWidget,
                              QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
                              QComboBox, QLineEdit, QListWidget, QListWidgetItem,
                              QMessageBox, QDateEdit, QSizePolicy)
-from PyQt6.QtCore import QDate, Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import pandas as pd
-import datetime
 
-from stock_data_manager import StockDataManager
 from financial_tools import FinancialTools
+import pandas as pd
+from stock_data_manager import StockDataManager
+
 
 class MplCanvas(FigureCanvas):
     """Matplotlib Canvas für die Einbettung in PyQt."""
+
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
@@ -22,7 +25,9 @@ class MplCanvas(FigureCanvas):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.updateGeometry()
 
+
 class StockAnalyzer(QMainWindow):
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Aktienanalyse-Tool")
@@ -53,7 +58,7 @@ class StockAnalyzer(QMainWindow):
         csv_group_layout.addWidget(import_csv_button)
         top_panel_layout.addLayout(csv_group_layout)
 
-        top_panel_layout.addStretch(1) # Abstandhalter
+        top_panel_layout.addStretch(1)
 
         # Symbol Auswahl
         symbol_selection_layout = QVBoxLayout()
@@ -78,7 +83,6 @@ class StockAnalyzer(QMainWindow):
         refresh_data_button = QPushButton("Daten aktualisieren")
         refresh_data_button.clicked.connect(self._refresh_selected_stock_data)
         symbol_selection_layout.addWidget(refresh_data_button)
-
 
         top_panel_layout.addLayout(symbol_selection_layout)
 
@@ -108,7 +112,6 @@ class StockAnalyzer(QMainWindow):
         self.tab_beta = QWidget()
         self.tabs.addTab(self.tab_beta, "Beta (Marktabhängigkeit)")
         self._setup_beta_tab()
-
 
     def _setup_overview_tab(self):
         layout = QVBoxLayout(self.tab_overview)
@@ -180,16 +183,14 @@ class StockAnalyzer(QMainWindow):
         self.beta_text = QLabel("Beta-Wert:")
         layout.addWidget(self.beta_text)
 
-
     def _load_initial_data(self):
         """Lädt initial alle Symbole in die ComboBox."""
         symbols = self.db_manager.get_all_symbols()
         if not symbols:
-            # Füge Standard-Symbole hinzu, wenn DB leer ist
             default_symbols = ["AAPL", "MSFT", "GOOGL"]
             for s in default_symbols:
                 self.db_manager.add_stock(s)
-            symbols = default_symbols # Aktualisiere die Liste
+            symbols = default_symbols
             # Optional: Initialdaten für Standard-Symbole holen
             # for s in symbols:
             #     self.db_manager.fetch_and_store_data(s, period="1y")
@@ -197,7 +198,7 @@ class StockAnalyzer(QMainWindow):
         self.symbol_combo.clear()
         self.symbol_combo.addItems(symbols)
         if symbols:
-            self._on_symbol_selected(0) # Wähle das erste Symbol aus und zeige Daten
+            self._on_symbol_selected(0)
 
     def _import_csv_and_fetch(self):
         """Importiert Symbole aus CSV und holt Daten."""
@@ -211,13 +212,12 @@ class StockAnalyzer(QMainWindow):
                 company_name = row.get('CompanyName', '')
                 if self.db_manager.add_stock(symbol, company_name):
                     imported_count += 1
-                if self.db_manager.fetch_and_store_data(symbol, period="max"): # Holt max. verfügbare Daten
+                if self.db_manager.fetch_and_store_data(symbol, period="max"): 
                     fetched_count += 1
             
             QMessageBox.information(self, "Import abgeschlossen",
                                     f"{imported_count} neue Symbole hinzugefügt.\n{fetched_count} Symbole aktualisiert/Daten geholt.")
-            self._load_initial_data() # Symbole in ComboBox aktualisieren
-
+            self._load_initial_data() 
         except FileNotFoundError:
             QMessageBox.warning(self, "Fehler", f"Datei '{csv_file}' nicht gefunden.")
         except KeyError:
@@ -232,12 +232,11 @@ class StockAnalyzer(QMainWindow):
             # Holen der neuesten Daten (yfinance holt automatisch nur die fehlenden)
             if self.db_manager.fetch_and_store_data(selected_symbol, period="max"):
                 QMessageBox.information(self, "Aktualisiert", f"Daten für {selected_symbol} wurden aktualisiert.")
-                self._on_symbol_selected(self.symbol_combo.currentIndex()) # Ansichten neu laden
+                self._on_symbol_selected(self.symbol_combo.currentIndex())  # Ansichten neu laden
             else:
                 QMessageBox.warning(self, "Fehler", f"Konnte Daten für {selected_symbol} nicht aktualisieren.")
         else:
             QMessageBox.information(self, "Info", "Kein Symbol ausgewählt.")
-
 
     def _get_current_stock_data(self):
         """Hilfsfunktion zum Abrufen der aktuellen Aktiendaten basierend auf Auswahl."""
@@ -272,10 +271,9 @@ class StockAnalyzer(QMainWindow):
 
         self._plot_overview(data)
         self._plot_returns(data)
-        self._plot_ma(data) # Kann überschrieben werden, wenn MA-Button geklickt wird
-        self._plot_volatility(data) # Kann überschrieben werden, wenn Vol-Button geklickt wird
-        self._plot_beta(data) # Kann überschrieben werden, wenn Beta-Button geklickt wird
-
+        self._plot_ma(data)  # Kann überschrieben werden, wenn MA-Button geklickt wird
+        self._plot_volatility(data)  # Kann überschrieben werden, wenn Vol-Button geklickt wird
+        self._plot_beta(data)  # Kann überschrieben werden, wenn Beta-Button geklickt wird
 
     def _clear_plot(self, canvas):
         """Löscht einen Plot."""
@@ -288,7 +286,6 @@ class StockAnalyzer(QMainWindow):
         self._clear_plot(self.ma_canvas)
         self._clear_plot(self.vol_canvas)
         self._clear_plot(self.beta_canvas)
-
 
     def _plot_overview(self, data):
         self._clear_plot(self.overview_canvas)
@@ -303,7 +300,6 @@ class StockAnalyzer(QMainWindow):
         self.overview_text.setText(f"Aktueller Kurs: {data['adj_close'].iloc[-1]:.2f}\n"
                                    f"Datum: {data.index[-1].strftime('%Y-%m-%d')}\n"
                                    f"Anzahl Datenpunkte: {len(data)}")
-
 
     def _plot_returns(self, data):
         self._clear_plot(self.returns_canvas)
@@ -320,7 +316,7 @@ class StockAnalyzer(QMainWindow):
             ax.plot(daily_returns.index, daily_returns, label='Tägliche Rendite', color='green', alpha=0.7)
             ax.set_title(f"{self.symbol_combo.currentText()} - Tägliche Renditen")
             ax.set_xlabel("Datum")
-            ax.set_ylabel("Rendite (%)") # Hier ist "%" wichtig
+            ax.set_ylabel("Rendite (%)")  # Hier ist "%" wichtig
             ax.grid(True)
             self.returns_canvas.draw()
 
@@ -332,15 +328,13 @@ class StockAnalyzer(QMainWindow):
             last_cumulative_return = cumulative_returns.iloc[-1]
             last_cumulative_return_str = f"{last_cumulative_return:.4f}" if pd.notna(last_cumulative_return) else "N/A"
 
-
             self.returns_text.setText(f"Durchschn. tägl. Rendite: {avg_daily_return_str}\n"
                                      f"Kumulierte Rendite (Gesamt): {last_cumulative_return_str}")
         else:
             self._clear_plot(self.returns_canvas)
             self.returns_text.setText("Nicht genügend Daten für Renditeberechnung.")
 
-
-    def _plot_ma(self, data):
+    def _plot_ma(self, data: pd.DataFrame):
         self._clear_plot(self.ma_canvas)
         ax = self.ma_canvas.axes
         try:
@@ -348,7 +342,8 @@ class StockAnalyzer(QMainWindow):
         except ValueError:
             QMessageBox.warning(self, "Eingabefehler", "Gleitender Durchschnitt: Fenster muss eine Zahl sein.")
             return
-
+        print(f"data in _plot_ma: {data}")
+        print(f"window in _plot_ma: {window}")
         ma = self.financial_tools.calculate_moving_average(data, window=window)
 
         if not ma.empty:
@@ -387,7 +382,6 @@ class StockAnalyzer(QMainWindow):
         else:
             self._clear_plot(self.vol_canvas)
             self.vol_text.setText("Nicht genügend Daten für Volatilitätsberechnung.")
-
 
     def _plot_beta(self, data):
         self._clear_plot(self.beta_canvas)
@@ -444,7 +438,6 @@ class StockAnalyzer(QMainWindow):
         else:
             self._clear_plot(self.beta_canvas)
             self.beta_text.setText("Nicht genügend Daten für Beta-Berechnung. Stellen Sie sicher, dass sowohl Aktie als auch Markt ausreichend historische Daten haben.")
-
 
     def closeEvent(self, event):
         """Wird aufgerufen, wenn das Fenster geschlossen wird."""
